@@ -1,0 +1,52 @@
+<project name="YUI Compressor Task" default="compile" basedir=".">
+	<description>
+		Build file for YUI compressor Ant task.
+	</description>
+	
+	<property environment="env"/>
+	<property file="build.properties"/>
+	
+   	<path id="javac.classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
+   	</path>
+	
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+	</target>	
+
+   	<target name="compile" depends="init">
+   		<mkdir dir="${build.dir}/classes"/>
+      	<javac  
+      		srcdir="${src.dir}" 
+      		destdir="${build.dir}/classes"
+      		includeantruntime="true"
+      		deprecation="off"
+      		debug="true"
+      		source="1.6">
+      		<classpath refid="javac.classpath"/>
+      	</javac>
+   	</target>
+
+	<target name="package" depends="compile">
+		<mkdir dir="${build.dir}/jar"/>
+		<copy todir="${build.dir}/jar">
+			<fileset dir="${build.dir}/classes" includes="**/*.class"/>
+			<fileset dir="${config.dir}"/>
+		</copy>
+		<jar jarfile="${dist.dir}/${jar.name}" basedir="${build.dir}/jar">
+			<!--
+			<manifest>
+				<attribute name="Class-Path" value="yuicompressor-2.4.2.jar" />
+			</manifest>
+			-->
+		</jar>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+		<delete dir="${dist.dir}"/>
+	</target>
+
+</project>  
