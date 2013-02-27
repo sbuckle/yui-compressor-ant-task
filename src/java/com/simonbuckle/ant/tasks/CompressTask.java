@@ -7,11 +7,15 @@ import java.util.List;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Mapper;
 
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
+
+import org.mozilla.javascript.ErrorReporter;
+import org.mozilla.javascript.EvaluatorException;
 
 public class CompressTask extends Task {
 
@@ -97,7 +101,21 @@ public class CompressTask extends Task {
 		Writer out = null;
 		try {
 			in = new BufferedReader(new FileReader(source));
-    		JavaScriptCompressor compressor = new JavaScriptCompressor(in, null);
+    		JavaScriptCompressor compressor = new JavaScriptCompressor(in, new ErrorReporter() {
+    		    
+    		    public void warning(String message, String sourceName, int line, String lineSource, int lineOffset) { 
+        	        log("Warning: " + message, Project.MSG_WARN);
+                }
+                
+                public void error(String message, String sourceName, int line, String lineSource, int lineOffset) { 
+                    log("Error: " + message, Project.MSG_ERR);
+                }
+                
+                public EvaluatorException runtimeError(String message, String sourceName, int line, String lineSource, int lineOffset) { 
+                    return new EvaluatorException(message);
+                }
+                
+    		});
 				
             out = new BufferedWriter(new FileWriter(dest));
             log("Compressing: " + source.getName());
