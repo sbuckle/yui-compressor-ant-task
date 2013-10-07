@@ -12,11 +12,15 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Mapper;
 
+import com.yahoo.platform.yui.compressor.CssCompressor;
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
 
 import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.EvaluatorException;
 
+/**
+ * @author Simon Buckle
+ */
 public class CompressTask extends Task {
 
 	private List<FileSet> filesets = new ArrayList<FileSet>();
@@ -84,12 +88,18 @@ public class CompressTask extends Task {
 			
 			String[] files = scanner.getIncludedFiles();
 			for (int i = 0; i < files.length; i++) {
-			    String[] output = mapper.getImplementation().mapFileName(files[i]);
+			    String fileName = files[i];
+			    String[] output = mapper.getImplementation().mapFileName(fileName);
 			    if (output != null) {
 			    	try {
-			    		compress(new File(dir, files[i]), new File(todir, output[0]));
+			    	    if (fileName.endsWith("css")) {
+			    	        compressCss(new File(dir, fileName), new File(todir, output[0]));
+			    	    } else {
+			    	        compress(new File(dir, fileName), new File(todir, output[0]));
+			    	    }
+			    		
 			    	} catch (IOException io) {
-			    		log("Failed to compress file: " + files[i]);
+			    		log("Failed to compress file: " + fileName);
 			    	}
 			    }
 			}
@@ -126,6 +136,24 @@ public class CompressTask extends Task {
                 				verbose, 
                 				preserveAllSemiColons, 
                 				disableOptimizations);
+		} finally {
+			 if (in != null) in.close();
+	         if (out != null) out.close();
+		}
+	}
+	
+	private void compressCss(File source, File dest) throws IOException {
+		Reader in = null;
+		Writer out = null;
+		try {
+			in = new BufferedReader(new FileReader(source));
+    		CssCompressor compressor = new CssCompressor(in);
+				
+            out = new BufferedWriter(new FileWriter(dest));
+            log("Compressing: " + source.getName());
+            
+            compressor.compress(out, 
+                				linebreak);
 		} finally {
 			 if (in != null) in.close();
 	         if (out != null) out.close();
