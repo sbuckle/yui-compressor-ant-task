@@ -106,7 +106,7 @@ public class CompressTask extends Task {
 		}
 	}
 
-	private void compress(File source, File dest) throws IOException {
+	private void compress(final File source, File dest) throws IOException {
 		Reader in = null;
 		Writer out = null;
 		try {
@@ -114,11 +114,11 @@ public class CompressTask extends Task {
 			JavaScriptCompressor compressor = new JavaScriptCompressor(in, new ErrorReporter() {
 
 				public void warning(String message, String sourceName, int line, String lineSource, int lineOffset) { 
-					log("Warning: " + message, Project.MSG_WARN);
+					log("Warning: " + source.getName() + ":" + line + ":" + lineOffset + " " + message + " >>>>" + lineSource, Project.MSG_WARN);
 				}
 
 				public void error(String message, String sourceName, int line, String lineSource, int lineOffset) { 
-					log("Error: " + message, Project.MSG_ERR);
+					log("Error: " + source.getName() + ":" + line + ":" + lineOffset + " " + message + " >>>>" + lineSource, Project.MSG_ERR);
 				}
 
 				public EvaluatorException runtimeError(String message, String sourceName, int line, String lineSource, int lineOffset) { 
@@ -128,7 +128,7 @@ public class CompressTask extends Task {
 			});
 
 			out = new BufferedWriter(new FileWriter(dest));
-			log("Compressing: " + source.getName());
+			log("Compressing: " + source.getName() + " ===> " + dest.getName());
 
 			compressor.compress(out, 
 					linebreak, 
@@ -149,7 +149,7 @@ public class CompressTask extends Task {
 			in = new BufferedReader(new FileReader(source));
 			CssCompressor compressor = new CssCompressor(in);
 
-			log("Compressing: " + source.getName());
+			log("Compressing: " + source.getName() + " ===> " + dest.getName());
 
 			out = new BufferedWriter(new FileWriter(dest));
 			compressor.compress(out, linebreak);
